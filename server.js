@@ -15,8 +15,8 @@ app.get("/notes", (req, res) => {
   res.sendFile(path.join(__dirname, "/public/notes.html"));
 });
 
-require("./routes/apiRoutes")(app);
-require("./routes/htmlRoutes")(app);
+// require("./routes/apiRoutes")(app);
+// require("./routes/htmlRoutes")(app);
 
 app.listen(PORT, () => {
   console.log(`App is running on http://localhost:${PORT}`);

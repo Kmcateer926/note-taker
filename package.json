@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Kmcateer926/note-taker/issues"
   },
-  "homepage": "https://github.com/Kmcateer926/note-taker#readme"
+  "homepage": "https://github.com/Kmcateer926/note-taker#readme",
+  "dependencies": {
+    "heroku": "^7.47.3"
+  }
 }
