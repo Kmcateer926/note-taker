@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/Kmcateer926/note-taker#readme",
   "dependencies": {
+    "express": "^4.17.1",
     "heroku": "^7.47.3"
   }
 }
