@@ -8,16 +8,16 @@ const PORT = process.env.PORT || 8080;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 // VIEWS ROUTES
-app.get("*", (req, res) => {
+app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "/public/index.html"));
 });
 app.get("/notes", (req, res) => {
   res.sendFile(path.join(__dirname, "/public/notes.html"));
 });
 
-// require("./routes/apiRoutes")(app);
-// require("./routes/htmlRoutes")(app);
-
+require("./routes/apiRoutes")(app);
+require("./routes/htmlRoutes")(app);
+require();
 app.listen(PORT, () => {
   console.log(`App is running on http://localhost:${PORT}`);
 });
