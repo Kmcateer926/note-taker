@@ -13,78 +13,70 @@ const app = express();
 //3. Define the PORT
 const PORT = process.env.PORT || 8080;
 
-//  Initialize notesData
-let notesData = [];
-
+const notes =[{
+    title: "Groceries",
+    text: "Apples, Bananas, Cherries"
+}]
 //6. Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "Develop/public")));
-  
 
+// Link CSS and JS
+app.get("/assets/js/index.js", (req,res) => {
+    res.sendFile(path.join(__dirname, "/public/assets/js/index.js"));
+});
+
+app.get("/assets/css/styles.css", (req,res) => {
+    res.sendFile(path.join(__dirname, "/public/assets/css/styles.css"));
+});
+
+//5. Add a route
+
+    //View Routes
 app.get("/notes", (req,res) => {
     res.sendFile(path.join(__dirname, "/public/notes.html"));
 });
 
-
-//POST 
-app.post("/api/notes", (req, res) => {
-
-    var newNote = req.body;
-    readFileAsync(path.join(__dirname, "./db/db.json"), "utf8")
-        .then(function (data) {
-            allNotes = JSON.parse(data);
-            if (newNote.id || newNote.id === 0) {
-                let currNote = allNotes[newNote.id];
-                currNote.title = newNote.title;
-                currNote.text = newNote.text;
-            } else {
-                allNotes.push(newNote);
-            }
-            writefileAsync(path.join(__dirname, "./db/db.json"), JSON.stringify(allNotes))
-                .then(function () {
-                    console.log("Wrote db.json");
-                })
-        });
-    res.json(newNote);
+//API Routing  
+    //GET ROUTE
+    app.get("/api/notes", (req,res) => {
+    fs.readFile("./db/db.json", (err,data) => {
+        if (err) throw err;
+        const previousNotes = JSON.parse(data);
+        return res.json(previousNotes);
+    });
 });
-    // fs.readFile("./db/db.json", "utf-8", (err, data) => {
-    //   if (err) {
-    //     throw err;
-    //   } else {
-    //     notesData = JSON.parse(data);
-    //     const newNote = { ...req.body, id: notesData.length };
-    //     console.log(newNote);
-    //     console.log(notesData);
-    //     notesData.push(newNote);
-    //     fs.writeFile("./db/db.json", JSON.stringify(notesData), "utf-8", (err) => {
-    //       if (err) {
-    //         throw err;
-    //       } else {
-    //         return res.json(notesData);
-    //       }
-    //     });
-    //   }
-    // });
-//   });
-    //DELETE 
-app.delete("/api/notes/:id", (req,res) => {
-    let savedNotes = fs.readFileSync("./db/db.json");
-    savedNotes = JSON.parse(savedNotes);
-    savedNotes = savedNotes.filter(function(data){
-        return data.id != req.params.id;
-        });
-        savedNotes = JSON.stringify(savedNotes);
-    fs.writeFileSync("./db/db.json", savedNotes);
-    savedNotes = JSON.parse(savedNotes);
-    return res.send(savedNotes);
+
+    //POST ROUTE
+app.post("/api/notes", (req,res) => {
+    let previousNotes = fs.readFileSync("./db/db.json");
+    req.body.id = uuidv4();
+    previousNotes = JSON.parse(previousNotes);
+    previousNotes.push(req.body);
+    previousNotes=JSON.stringify(previousNotes);
+    fs.writeFileSync("./db/db.json", previousNotes);
+    previousNotes=JSON.parse(previousNotes);
+    return res.json(previousNotes);
 })
 
+    //DELETE route
+app.delete("/api/notes/:id", (req,res) => {
+    let previousNotes = fs.readFileSync("./db/db.json");
+    previousNotes = JSON.parse(previousNotes);
+    previousNotes = previousNotes.filter(function(data){
+        return data.id != req.params.id;
+        });
+    previousNotes = JSON.stringify(previousNotes);
+    fs.writeFileSync("./db/db.json",previousNotes);
+    previousNotes = JSON.parse(previousNotes);
+    return res.send(previousNotes);
+})
 
 app.get("*", (req,res) => {
     res.sendFile(path.join(__dirname, "/public/index.html"));
 });
-// 4. Listen on the port
+
+//4. Listen on the port
 app.listen(PORT,() => {
     console.log(`App listening on http://localhost:${PORT}`);
 });
