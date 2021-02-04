@@ -1,73 +1,104 @@
+const { json } = require("express");
 const express = require("express");
-const app = express();
-
-const PORT = process.env.PORT || 8080;
-
+const { fstat } = require("fs");
 const path = require("path");
 const fs = require("fs");
+let notes = require("./db/db.json");
+const { dirname } = require("path");
+bodyParser = require("body-parser");
 
-const { v4: uuidv4 } = require("uuid");
-const notesArray = [];
+const PORT = process.env.PORT || 3000;
 
+// create instance of express
+const app = express();
+
+let notesArray = [
+  {
+    id: 1,
+    message: "First reminder of the day!",
+  },
+];
+
+// Sets up the Express app to handle data parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
 app.use(express.static("public"));
+app.use(bodyParser.json());
 
-app.get("/notes", (req, res) => {
-  res.sendFile(path.join(__dirname, "/public/views/notes.html"));
-});
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "/public/views/index.html"));
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
-
+// Routes to get back the HTML Files
 app.get("/api/config", (req, res) => {
-  return res.json({
+  res.json({
     success: true,
   });
 });
 
-app.get("/api/notes", (req, res) => {
-  return res.json(
-    JSON.parse(fs.readFileSync(path.join(__dirname, "/db/db.json")))
-  );
+// HTML VIEWS ROUTES
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "./public/index.html"));
 });
 
-app.get("/api/notes:id", (req, res) => {
-  res.json(data, req.params.id);
+app.get("/notes", (req, res) => {
+  res.sendFile(path.join(__dirname, "./public/notes.html"));
+});
+
+// API ROUTES
+app.get("/api/notes", (req, res) => {
+  // read file
+
+  fs.readFile("./db/db.json", "utf-8", (err, data) => {
+    if (err) {
+      throw err;
+    } else {
+      return res.json(JSON.parse(data));
+    }
+  });
+  // return res.json(notes)
 });
 
 app.post("/api/notes", (req, res) => {
-  let createNewNote = req.body;
-
-  createNewNote.id = uuidv4();
-
-  const notes = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "./db/db.json"))
-  );
-
-  notes.push(createNewNote);
-
-  fs.writeFileSync(path.join(__dirname, "./db/db.json"), JSON.stringify(notes));
-
-  return res.json(notes);
+  fs.readFile("./db/db.json", "utf-8", (err, data) => {
+    if (err) {
+      throw err;
+    } else {
+      notesArray = JSON.parse(data);
+      const newNote = { ...req.body, id: notesArray.length };
+      console.log(newNote);
+      console.log(notesArray);
+      notesArray.push(newNote);
+      fs.writeFile("./db/db.json", JSON.stringify(notesArray), "utf-8", (err) => {
+        if (err) {
+          throw err;
+        } else {
+          return res.json(notesArray);
+        }
+      });
+    }
+  });
 });
 
-app.delete("/api/notes/:id", (req, res) => {
-  let id = parseInt(req.params.id);
+app.delete("/api/notes/:id", function (req, res) {
+  const chosen = req.params.id;
+  const newNotes = notes.filter((note) => note.id != chosen);
 
-  const theNotes = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "./db/db.json"))
-  );
+  if (!newNotes) {
+    response.status(500).send("Notes not found.");
+  } else {
+    notes = newNotes;
+    //   response.send(notes);
+  }
+  fs.writeFile("./db/db.json", JSON.stringify(notes), (err) => {
+    if (err) {
+      throw err;
+    } else {
+      res.json(chosen);
+    }
 
-  let notesNotToDelete = theNotes.filter((note) => note.id !== id);
-
-  fs.writeFileSync("./db/db.json", JSON.stringify(notesNotToDelete));
-
-  return res.json(notesNotToDelete);
+    console.log(chosen);
+  });
 });
+
+// listen on the port
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+
